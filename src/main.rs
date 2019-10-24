@@ -17,22 +17,6 @@ impl Paddle {
         let min = self.width / 2.0;
         let max = WIDTH as f32 - min;
         
-        //~ if amt > 0.0 {
-            //~ if self.pos[0] >= min {
-                //~ self.pos[0] += amt;
-            //~ }
-            //~ if self.pos[0] < max {
-                //~ self.pos[0] += amt;
-            //~ }
-        //~ } else {
-            //~ if self.pos[0] > min {
-                //~ self.pos[0] += amt;
-            //~ }
-            //~ if self.pos[0] <= max {
-                //~ self.pos[0] += amt;
-            //~ }
-        //~ }
-        
         let tmp = self.pos[0] + amt;
         if (tmp >= min) && (tmp <= max) {
             self.pos[0] = tmp;
@@ -129,27 +113,28 @@ fn main() {
         //~ let image_dimensions = image.dimensions();
         //~ image_set.push(glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions));
     //~ }
+    let path: &str = "/home/ekloeckner/rust/projects/breakout/";
     
-    let bg_01_image = image::open("/home/pi/rust/projects/breakout/images/background_01.png").unwrap().to_rgba();
+    let bg_01_image = image::open(format!("{}{}", path, "images/background_01.png")).unwrap().to_rgba();
     let bg_01_dimensions = bg_01_image.dimensions();
     let bg_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&bg_01_image.into_raw(), bg_01_dimensions);
     let bg_01_tex = glium::texture::Texture2d::new(&display, bg_01_image).unwrap();
     
-    let paddle_01_image = image::open("/home/pi/rust/projects/breakout/images/paddle_01.png").unwrap().to_rgba();
+    let paddle_01_image = image::open(format!("{}{}", path, "images/paddle_01.png")).unwrap().to_rgba();
     let paddle_01_dimensions = paddle_01_image.dimensions();
     let paddle_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&paddle_01_image.into_raw(), paddle_01_dimensions);
     let paddle_01_tex = glium::texture::Texture2d::new(&display, paddle_01_image).unwrap();
     
     let mut paddle1 = Paddle { pos: [160.0, 20.0], width: 320.0, height: 40.0 };
     
-    let ball_01_image = image::open("/home/pi/rust/projects/breakout/images/ball_01.png").unwrap().to_rgba();
+    let ball_01_image = image::open(format!("{}{}", path, "images/ball_01.png")).unwrap().to_rgba();
     let ball_01_dimensions = ball_01_image.dimensions();
     let ball_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&ball_01_image.into_raw(), ball_01_dimensions);
     let ball_01_tex = glium::texture::Texture2d::new(&display, ball_01_image).unwrap();
     
     let mut ball1 = Ball { pos: [200.0, 100.0], width: 56.0, height: 56.0, v_x: 10.0, v_y: 15.0 };
     
-    let block_01_image = image::open("/home/pi/rust/projects/breakout/images/block_01.png").unwrap().to_rgba();
+    let block_01_image = image::open(format!("{}{}", path, "images/block_01.png")).unwrap().to_rgba();
     let block_01_dimensions = block_01_image.dimensions();
     let block_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&block_01_image.into_raw(), block_01_dimensions);
     let block_01_tex = glium::texture::Texture2d::new(&display, block_01_image).unwrap();
@@ -177,28 +162,18 @@ fn main() {
     
     let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
     let index_buffer = glium::IndexBuffer::new(&display, glium::index::PrimitiveType::TriangleStrip, &[0 as u16, 1, 2, 3]).unwrap();
-    
-    //~ let blocks = vec![
-        //~ Block { pos: [  64.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [ 192.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [ 320.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [ 448.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [ 576.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [ 704.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [ 832.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [ 960.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [1088.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [1216.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [1344.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [1472.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [1600.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [1728.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ Block { pos: [1856.0, 400.0], width: 128.0, height: 64.0, hue: 0.0, state: true },
-        //~ ];
         
-    let blocks = (0..15).map(|i| {
-        Block { pos: [i as f32 * 128.0 + 64.0, 800.0], width: 128.0, height: 64.0, hue: 0.0, state: true }
-        }).collect::<Vec<_>>();
+    let blocks = (0..10).map(|y| {
+        (0..15).map(|x| {
+            Block { 
+                pos: [x as f32 * 128.0 + 64.0, y as f32 * 64.0 + 472.0],
+                width: 128.0,
+                height: 64.0,
+                hue: x as f32 * 0.01,
+                state: true
+            }
+        }).collect::<Vec<_>>()
+    }).collect::<Vec<_>>();
     
     //~ let blocks_buffer = {
         //~ let data = blocks.iter().map(|val| {
@@ -280,8 +255,33 @@ fn main() {
         
         void main() {
             vec4 col_in = texture2D(tex, v_tex_coords);
+            
+            float sat = 1.0;
             float val = col_in.r;
-            gl_FragColor = vec4(val, 0.0, 0.0, col_in.a);
+            float i = floor(hue * 6.0);
+            float f = (hue * 6.0) - i;
+            float p = val * (1.0 - sat);
+            float q = val * (1.0 - sat * f);
+            float t = val * (1.0 - sat * (1.0 - f));
+            
+            if (i == 0) {
+                gl_FragColor = vec4(val, t, p, col_in.a);
+            }
+            if (i == 1) {
+                gl_FragColor = vec4(q, val, p, col_in.a);
+            }
+            if (i == 2) {
+                gl_FragColor = vec4(p, val, t, col_in.a);
+            }
+            if (i == 3) {
+                gl_FragColor = vec4(p, q, val, col_in.a);
+            }
+            if (i == 4) {
+                gl_FragColor = vec4(t, p, val, col_in.a);
+            }
+            if (i == 5) {
+                gl_FragColor = vec4(val, p, q, col_in.a);
+            }
         }
         ",
         None).unwrap();
@@ -362,17 +362,6 @@ fn main() {
                         tex: &ball_01_tex,
                     };
                     
-                    //~ let uniforms_blocks = uniform! {
-                        //~ perspective: ortho,
-                        //~ matrix: [
-                            //~ [blocks[0].width / 2.0,                    0.0, 0.0, 0.0],
-                            //~ [                  0.0, blocks[0].height / 2.0, 0.0, 0.0],
-                            //~ [                  0.0,                    0.0, 1.0, 0.0],
-                            //~ [                  0.0,                    0.0, 0.0, 1.0f32],
-                        //~ ],
-                        //~ tex: &block_01_tex,
-                    //~ };
-                    
                     // --draw background
                     target.draw(&vertex_buffer, &index_buffer, &program, &uniforms_bg, &params).unwrap();
                     
@@ -383,20 +372,22 @@ fn main() {
                     target.draw(&vertex_buffer, &index_buffer, &program, &uniforms_ball1, &params).unwrap();
                     
                     // --draw blocks
-                    for i in blocks.iter() {
-                        let uniforms_blocks = uniform! {
-                            perspective: ortho,
-                            matrix: [
-                                [i.width / 2.0,            0.0, 0.0, 0.0],
-                                [          0.0, i.height / 2.0, 0.0, 0.0],
-                                [          0.0,            0.0, 1.0, 0.0],
-                                [     i.pos[0],       i.pos[1], 0.0, 1.0f32],
-                            ],
-                            tex: &block_01_tex,
-                            hue: i.hue,
-                        };
-                        if i.state {
-                            target.draw(&vertex_buffer, &index_buffer, &program_block, &uniforms_blocks, &params).unwrap();
+                    for row in blocks.iter() {
+                        for col in row.iter() {
+                            let uniforms_blocks = uniform! {
+                                perspective: ortho,
+                                matrix: [
+                                    [col.width / 2.0,              0.0, 0.0, 0.0],
+                                    [            0.0, col.height / 2.0, 0.0, 0.0],
+                                    [            0.0,              0.0, 1.0, 0.0],
+                                    [     col.pos[0],       col.pos[1], 0.0, 1.0f32],
+                                ],
+                                tex: &block_01_tex,
+                                hue: col.hue,
+                            };
+                            if col.state {
+                                target.draw(&vertex_buffer, &index_buffer, &program_block, &uniforms_blocks, &params).unwrap();
+                            }
                         }
                     }
                     //~ target.draw((&vertex_buffer, blocks_buffer.per_instance().unwrap()), &index_buffer, &program_block, &uniforms_blocks, &params).unwrap();
