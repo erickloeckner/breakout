@@ -79,6 +79,7 @@ struct Block {
 }
 
 fn main() {
+    use std::env;
     use glium::{glutin, Surface};
     //~ use std::io::Cursor;
     use glium::glutin::window::Fullscreen;
@@ -113,28 +114,31 @@ fn main() {
         //~ let image_dimensions = image.dimensions();
         //~ image_set.push(glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions));
     //~ }
-    let path: &str = "/home/ekloeckner/rust/projects/breakout/";
+    //~ let path: &str = "/home/ekloeckner/rust/projects/breakout/";
+    let mut cwd = env::current_dir().unwrap();
+    cwd.push("images");
+    let path: &str = cwd.to_str().unwrap();
     
-    let bg_01_image = image::open(format!("{}{}", path, "images/background_01.png")).unwrap().to_rgba();
+    let bg_01_image = image::open(format!("{}{}", path, "/background_01.png")).unwrap().to_rgba();
     let bg_01_dimensions = bg_01_image.dimensions();
     let bg_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&bg_01_image.into_raw(), bg_01_dimensions);
     let bg_01_tex = glium::texture::Texture2d::new(&display, bg_01_image).unwrap();
     
-    let paddle_01_image = image::open(format!("{}{}", path, "images/paddle_01.png")).unwrap().to_rgba();
+    let paddle_01_image = image::open(format!("{}{}", path, "/paddle_01.png")).unwrap().to_rgba();
     let paddle_01_dimensions = paddle_01_image.dimensions();
     let paddle_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&paddle_01_image.into_raw(), paddle_01_dimensions);
     let paddle_01_tex = glium::texture::Texture2d::new(&display, paddle_01_image).unwrap();
     
     let mut paddle1 = Paddle { pos: [160.0, 20.0], width: 320.0, height: 40.0 };
     
-    let ball_01_image = image::open(format!("{}{}", path, "images/ball_01.png")).unwrap().to_rgba();
+    let ball_01_image = image::open(format!("{}{}", path, "/ball_01.png")).unwrap().to_rgba();
     let ball_01_dimensions = ball_01_image.dimensions();
     let ball_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&ball_01_image.into_raw(), ball_01_dimensions);
     let ball_01_tex = glium::texture::Texture2d::new(&display, ball_01_image).unwrap();
     
     let mut ball1 = Ball { pos: [200.0, 100.0], width: 56.0, height: 56.0, v_x: 10.0, v_y: 15.0 };
     
-    let block_01_image = image::open(format!("{}{}", path, "images/block_01.png")).unwrap().to_rgba();
+    let block_01_image = image::open(format!("{}{}", path, "/block_01.png")).unwrap().to_rgba();
     let block_01_dimensions = block_01_image.dimensions();
     let block_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&block_01_image.into_raw(), block_01_dimensions);
     let block_01_tex = glium::texture::Texture2d::new(&display, block_01_image).unwrap();
