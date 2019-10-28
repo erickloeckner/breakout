@@ -33,7 +33,7 @@ struct Ball {
 }
 
 impl Ball {
-    fn update(&mut self, paddle: &Paddle) {
+    fn update(&mut self, dt: f32, paddle: &Paddle) {
         let min_x = self.width / 2.0;
         let max_x = WIDTH as f32 - min_x;
         
@@ -42,17 +42,19 @@ impl Ball {
         
         if (self.pos[0] <= min_x) || (self.pos[0] >= max_x) {
             self.v_x = -self.v_x;
+            self.pos[0] += (dt * 500.0).copysign(self.v_x);
         }
         
         //~ if (self.pos[1] <= min_y) || (self.pos[1] >= max_y) {
         if self.pos[1] >= max_y {
             self.v_y = -self.v_y;
+            self.pos[1] -= dt * 500.0;
         }
         
         if self.pos[1] <= -20.0 {
             self.pos = [200.0, 100.0];
-            self.v_x = 10.0;
-            self.v_y = 15.0;
+            self.v_x = 500.0;
+            self.v_y = 750.0;
         }
         
         let paddle_size_x = paddle.width / 2.0;
@@ -65,6 +67,7 @@ impl Ball {
             //~ self.v_x = -self.v_x;
             if (self.pos[1] >= paddle.pos[1] - paddle_size_y) && (self.pos[1] <= paddle.pos[1] + paddle_size_y) {
                 self.v_y = -self.v_y;
+                self.pos[1] += dt * 500.0;
             }
         }
         
@@ -72,8 +75,8 @@ impl Ball {
             //~ self.v_y = -self.v_y;
         //~ }
         
-        self.pos[0] += self.v_x;
-        self.pos[1] += self.v_y;
+        self.pos[0] += self.v_x * dt;
+        self.pos[1] += self.v_y * dt;
     }
 }
 
@@ -105,7 +108,7 @@ impl Block {
                     
                     let dx = (ball.pos[0] - self.pos[0]) / self.width;
                     let dy = (ball.pos[1] - self.pos[1]) / self.height;
-                    if (dx.abs() > dy.abs()) {
+                    if dx.abs() > dy.abs() {
                         ball.v_x = ball.v_x.abs().copysign(dx);
                         ball.v_x += 0.1_f32.copysign(ball.v_x);
                         ball.v_y += 0.1_f32.copysign(ball.v_y);
@@ -182,7 +185,7 @@ fn main() {
     let ball_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&ball_01_image.into_raw(), ball_01_dimensions);
     let ball_01_tex = glium::texture::Texture2d::new(&display, ball_01_image).unwrap();
     
-    let mut ball1 = Ball { pos: [200.0, 100.0], width: 56.0, height: 56.0, v_x: 10.0, v_y: 15.0 };
+    let mut ball1 = Ball { pos: [200.0, 100.0], width: 56.0, height: 56.0, v_x: 500.0, v_y: 750.0 };
     
     let block_01_image = image::open(format!("{}{}", path, "/block_01.png")).unwrap().to_rgba();
     let block_01_dimensions = block_01_image.dimensions();
@@ -351,7 +354,7 @@ fn main() {
     
     //~ let mut val = 0.0;
     //~ let mut frame: i32 = 0;
-    //~ let mut last_frame = std::time::Instant::now();
+    let mut last_frame = std::time::Instant::now();
     let mut block_hue: f32 = 0.0;
     
     let mut key_move_l = 0;
@@ -368,16 +371,20 @@ fn main() {
                     *control_flow = glutin::event_loop::ControlFlow::Exit;
                 },
                 glutin::event::WindowEvent::RedrawRequested => {
-                    block_hue = (block_hue + 0.001) % 1.0;
+                    let now = std::time::Instant::now();
+                    let dt = (now - last_frame).as_micros() as f32 / 1000000.0;
+                    //~ println!("{}", dt);
+                    
+                    block_hue = (block_hue + (0.01 * dt)) % 1.0;
                     
                     if key_move_l == 1 {
-                        paddle1.move_h(-32.0);
+                        paddle1.move_h(-640.0 * dt);
                     }
                     if key_move_r == 1 {
-                        paddle1.move_h(32.0);
+                        paddle1.move_h( 640.0 * dt);
                     }
                     
-                    ball1.update(&paddle1);
+                    ball1.update(dt, &paddle1);
                     
                     let mut target = display.draw();
                     target.clear_color(1.0, 1.0, 1.0, 1.0);
@@ -455,6 +462,7 @@ fn main() {
                     //~ if val == 0.0 {
                         //~ frame = (frame + 1) % 3;
                     //~ }
+                    last_frame = now;
                 },
                 glutin::event::WindowEvent::KeyboardInput {
                     input:
