@@ -44,8 +44,15 @@ impl Ball {
             self.v_x = -self.v_x;
         }
         
-        if (self.pos[1] <= min_y) || (self.pos[1] >= max_y) {
+        //~ if (self.pos[1] <= min_y) || (self.pos[1] >= max_y) {
+        if self.pos[1] >= max_y {
             self.v_y = -self.v_y;
+        }
+        
+        if self.pos[1] <= -20.0 {
+            self.pos = [200.0, 100.0];
+            self.v_x = 10.0;
+            self.v_y = 15.0;
         }
         
         let paddle_size_x = paddle.width / 2.0;
@@ -76,6 +83,45 @@ struct Block {
     height: f32,
     hue: f32,
     state: bool,
+}
+
+impl Block {
+    fn update(&mut self, ball: &mut Ball) {
+        if self.state {
+            let top    = self.pos[1] + (self.height / 2.0);
+            let bottom = self.pos[1] - (self.height / 2.0);
+            let left   = self.pos[0] - (self.width  / 2.0);
+            let right  = self.pos[0] + (self.width  / 2.0);
+            
+            if (bottom <= ball.pos[1]) && (ball.pos[1] <= top) {
+                if (left <= ball.pos[0]) && (ball.pos[0] <= right) {
+                    //~ if ball.pos[0] == left || ball.pos[0] == right {
+                        //~ ball.v_x = -ball.v_x;
+                    //~ }
+                    //~ if ball.pos[1] == top || ball.pos[1] == bottom {
+                        //~ ball.v_y = -ball.v_y;
+                    //~ }
+                    //~ ball.v_y = -ball.v_y;
+                    
+                    let dx = (ball.pos[0] - self.pos[0]) / self.width;
+                    let dy = (ball.pos[1] - self.pos[1]) / self.height;
+                    if (dx.abs() > dy.abs()) {
+                        ball.v_x = ball.v_x.abs().copysign(dx);
+                        ball.v_x += 0.1_f32.copysign(ball.v_x);
+                        ball.v_y += 0.1_f32.copysign(ball.v_y);
+                        //~ self.state = false;
+                    } else {
+                        ball.v_y = ball.v_y.abs().copysign(dy);
+                        ball.v_x += 0.1_f32.copysign(ball.v_x);
+                        ball.v_y += 0.1_f32.copysign(ball.v_y);
+                        //~ self.state = false;
+                    }
+                    self.state = false;
+                    //~ println!("ball: {},{} | block: {},{}", ball.pos[0], ball.pos[1], self.pos[0], self.pos[1]);
+                }
+            }
+        }
+    }
 }
 
 fn main() {
@@ -167,7 +213,7 @@ fn main() {
     let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
     let index_buffer = glium::IndexBuffer::new(&display, glium::index::PrimitiveType::TriangleStrip, &[0 as u16, 1, 2, 3]).unwrap();
         
-    let blocks = (0..10).map(|y| {
+    let mut blocks = (0..10).map(|y| {
         (0..15).map(|x| {
             Block { 
                 pos: [x as f32 * 128.0 + 64.0, y as f32 * 64.0 + 472.0],
@@ -306,6 +352,7 @@ fn main() {
     //~ let mut val = 0.0;
     //~ let mut frame: i32 = 0;
     //~ let mut last_frame = std::time::Instant::now();
+    let mut block_hue: f32 = 0.0;
     
     let mut key_move_l = 0;
     let mut key_move_r = 0;
@@ -321,11 +368,13 @@ fn main() {
                     *control_flow = glutin::event_loop::ControlFlow::Exit;
                 },
                 glutin::event::WindowEvent::RedrawRequested => {
+                    block_hue = (block_hue + 0.001) % 1.0;
+                    
                     if key_move_l == 1 {
-                        paddle1.move_h(-16.0);
+                        paddle1.move_h(-32.0);
                     }
                     if key_move_r == 1 {
-                        paddle1.move_h(16.0);
+                        paddle1.move_h(32.0);
                     }
                     
                     ball1.update(&paddle1);
@@ -376,8 +425,11 @@ fn main() {
                     target.draw(&vertex_buffer, &index_buffer, &program, &uniforms_ball1, &params).unwrap();
                     
                     // --draw blocks
-                    for row in blocks.iter() {
-                        for col in row.iter() {
+                    for (row_i, row) in blocks.iter_mut().enumerate() {
+                        for (col_i, col) in row.iter_mut().enumerate() {
+                            col.hue = ((col_i as f32 * 0.01) + (row_i as f32 * 0.01) + block_hue) % 1.0;
+                            col.update(&mut ball1);
+                            
                             let uniforms_blocks = uniform! {
                                 perspective: ortho,
                                 matrix: [
