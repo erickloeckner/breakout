@@ -40,17 +40,20 @@ impl Ball {
         let min_y = self.height / 2.0;
         let max_y = HEIGHT as f32 - min_y;
         
+        // --bounce off left/right side
         if (self.pos[0] <= min_x) || (self.pos[0] >= max_x) {
             self.v_x = -self.v_x;
             self.pos[0] += (dt * 500.0).copysign(self.v_x);
         }
         
+        // --bounce off top wall
         //~ if (self.pos[1] <= min_y) || (self.pos[1] >= max_y) {
         if self.pos[1] >= max_y {
             self.v_y = -self.v_y;
             self.pos[1] -= dt * 500.0;
         }
         
+        // --if ball y position is -20 or less reset
         if self.pos[1] <= -20.0 {
             self.pos = [200.0, 100.0];
             self.v_x = 500.0;
@@ -63,6 +66,7 @@ impl Ball {
         let paddle_size_y = paddle.height / 2.0;
         //~ let paddle_max_y = HEIGHT as f32 - paddle_min_y;
         
+        // --bounce off paddle
         if (self.pos[0] >= paddle.pos[0] - paddle_size_x) && (self.pos[0] <= paddle.pos[0] + paddle_size_x) {
             //~ self.v_x = -self.v_x;
             if (self.pos[1] >= paddle.pos[1] - paddle_size_y) && (self.pos[1] <= paddle.pos[1] + paddle_size_y) {
@@ -110,13 +114,13 @@ impl Block {
                     let dy = (ball.pos[1] - self.pos[1]) / self.height;
                     if dx.abs() > dy.abs() {
                         ball.v_x = ball.v_x.abs().copysign(dx);
-                        ball.v_x += 0.1_f32.copysign(ball.v_x);
-                        ball.v_y += 0.1_f32.copysign(ball.v_y);
+                        ball.v_x += 10_f32.copysign(ball.v_x);
+                        ball.v_y += 10_f32.copysign(ball.v_y);
                         //~ self.state = false;
                     } else {
                         ball.v_y = ball.v_y.abs().copysign(dy);
-                        ball.v_x += 0.1_f32.copysign(ball.v_x);
-                        ball.v_y += 0.1_f32.copysign(ball.v_y);
+                        ball.v_x += 10_f32.copysign(ball.v_x);
+                        ball.v_y += 10_f32.copysign(ball.v_y);
                         //~ self.state = false;
                     }
                     self.state = false;
@@ -373,6 +377,8 @@ fn main() {
                 glutin::event::WindowEvent::RedrawRequested => {
                     let now = std::time::Instant::now();
                     let dt = (now - last_frame).as_micros() as f32 / 1000000.0;
+                    last_frame = now;
+                    
                     //~ println!("{}", dt);
                     
                     block_hue = (block_hue + (0.01 * dt)) % 1.0;
@@ -457,12 +463,6 @@ fn main() {
                     
                     target.finish().unwrap();
                     //~ display.gl_window().swap_buffers().unwrap();
-                    
-                    //~ val = (val + 1.0) % 1920.0;
-                    //~ if val == 0.0 {
-                        //~ frame = (frame + 1) % 3;
-                    //~ }
-                    last_frame = now;
                 },
                 glutin::event::WindowEvent::KeyboardInput {
                     input:
