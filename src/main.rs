@@ -6,6 +6,28 @@ extern crate cgmath;
 const WIDTH: u32 = 1920;
 const HEIGHT: u32 = 1080;
 
+// --struct definitions for config file
+use serde_derive::Deserialize;
+#[derive(Deserialize)]
+struct Config {
+    sprites: Sprites,
+}
+
+#[derive(Deserialize)]
+struct Sprites {
+    bg_01_img: String,
+    
+    paddle_img: String,
+    paddle_pos: [f32; 2],
+    
+    ball_img: String,
+    ball_pos: [f32; 2],
+    ball_vel: [f32; 2],
+    
+    block_img: String,
+}
+
+// --struct definitions for game objects
 struct Paddle {
     pos: [f32; 2],
     width: f32,
@@ -81,6 +103,11 @@ impl Ball {
         
         self.pos[0] += self.v_x * dt;
         self.pos[1] += self.v_y * dt;
+        
+        // --clamp ball X position between 0 and screen width
+        self.pos[0] = self.pos[0].max(0.0).min(WIDTH  as f32);
+        // --clamp ball Y position at screen height
+        self.pos[1] = self.pos[1].min(HEIGHT as f32);
     }
 }
 
@@ -132,11 +159,20 @@ impl Block {
 }
 
 fn main() {
-    use std::env;
+    use std::{env,fs,process};
     use glium::{glutin, Surface};
-    //~ use std::io::Cursor;
     use glium::glutin::window::Fullscreen;
     //~ use cgmath::*;
+    
+    let mut cwd = env::current_exe().unwrap();
+    for _i in 0..3 { cwd.pop(); }
+    cwd.push("config.toml");
+    let config_raw = fs::read_to_string(cwd.to_str().unwrap()).unwrap();
+    let config: Config = toml::from_str(&config_raw).unwrap_or_else(|err| {
+        println!("error parsing config: {}", err);
+        process::exit(1);
+    });
+    cwd.pop();
     
     let event_loop = glutin::event_loop::EventLoop::new();
     let wb = glutin::window::WindowBuilder::new()
@@ -168,33 +204,47 @@ fn main() {
         //~ image_set.push(glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions));
     //~ }
     //~ let path: &str = "/home/ekloeckner/rust/projects/breakout/";
-    let mut cwd = env::current_dir().unwrap();
-    cwd.push("images");
-    let path: &str = cwd.to_str().unwrap();
     
-    let bg_01_image = image::open(format!("{}{}", path, "/background_01.png")).unwrap().to_rgba();
+    //~ let mut cwd = env::current_dir().unwrap();
+    //~ let path: &str = cwd.to_str().unwrap();
+    
+    cwd.push("images");
+    //~ let bg_01_image = image::open(format!("{}{}", path, "/background_01.png")).unwrap().to_rgba();
+    cwd.push("background_01.png");
+    let bg_01_image = image::open(cwd.to_str().unwrap()).unwrap().to_rgba();
     let bg_01_dimensions = bg_01_image.dimensions();
     let bg_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&bg_01_image.into_raw(), bg_01_dimensions);
     let bg_01_tex = glium::texture::Texture2d::new(&display, bg_01_image).unwrap();
+    cwd.pop();
     
-    let paddle_01_image = image::open(format!("{}{}", path, "/paddle_01.png")).unwrap().to_rgba();
+    
+    //~ let paddle_01_image = image::open(format!("{}{}", path, "/paddle_01.png")).unwrap().to_rgba();
+    cwd.push("paddle_01.png");
+    let paddle_01_image = image::open(cwd.to_str().unwrap()).unwrap().to_rgba();
     let paddle_01_dimensions = paddle_01_image.dimensions();
     let paddle_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&paddle_01_image.into_raw(), paddle_01_dimensions);
     let paddle_01_tex = glium::texture::Texture2d::new(&display, paddle_01_image).unwrap();
+    cwd.pop();
     
     let mut paddle1 = Paddle { pos: [160.0, 20.0], width: 320.0, height: 40.0 };
     
-    let ball_01_image = image::open(format!("{}{}", path, "/ball_01.png")).unwrap().to_rgba();
+    //~ let ball_01_image = image::open(format!("{}{}", path, "/ball_01.png")).unwrap().to_rgba();
+    cwd.push("ball_01.png");
+    let ball_01_image = image::open(cwd.to_str().unwrap()).unwrap().to_rgba();
     let ball_01_dimensions = ball_01_image.dimensions();
     let ball_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&ball_01_image.into_raw(), ball_01_dimensions);
     let ball_01_tex = glium::texture::Texture2d::new(&display, ball_01_image).unwrap();
+    cwd.pop();
     
     let mut ball1 = Ball { pos: [200.0, 100.0], width: 56.0, height: 56.0, v_x: 500.0, v_y: 750.0 };
     
-    let block_01_image = image::open(format!("{}{}", path, "/block_01.png")).unwrap().to_rgba();
+    //~ let block_01_image = image::open(format!("{}{}", path, "/block_01.png")).unwrap().to_rgba();
+    cwd.push("block_01.png");
+    let block_01_image = image::open(cwd.to_str().unwrap()).unwrap().to_rgba();
     let block_01_dimensions = block_01_image.dimensions();
     let block_01_image = glium::texture::RawImage2d::from_raw_rgba_reversed(&block_01_image.into_raw(), block_01_dimensions);
     let block_01_tex = glium::texture::Texture2d::new(&display, block_01_image).unwrap();
+    cwd.pop();
     
     #[derive(Copy, Clone)]
     struct Vertex {
@@ -384,10 +434,10 @@ fn main() {
                     block_hue = (block_hue + (0.01 * dt)) % 1.0;
                     
                     if key_move_l == 1 {
-                        paddle1.move_h(-640.0 * dt);
+                        paddle1.move_h(-800.0 * dt);
                     }
                     if key_move_r == 1 {
-                        paddle1.move_h( 640.0 * dt);
+                        paddle1.move_h( 800.0 * dt);
                     }
                     
                     ball1.update(dt, &paddle1);
