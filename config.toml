@@ -1,0 +1,11 @@
+[sprites]
+bg_01_img = "background_01.png"
+    
+paddle_img = "paddle_01.png"
+paddle_pos = [160.0, 20.0]
+    
+ball_img = "ball_01.png"
+ball_pos = [200.0, 100.0]
+ball_vel = [500.0, 750.0]
+    
+block_img = "block_01.png"
